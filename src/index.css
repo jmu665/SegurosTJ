@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-apple-50: #fbfbfd;
+  --color-apple-100: #f5f5f7;
+  --color-apple-200: #e8e8ed;
+  --color-apple-300: #d2d2d7;
+  --color-apple-400: #86868b;
+  --color-apple-500: #515154;
+  --color-apple-600: #1d1d1f;
+
+  --color-apple-blue: #0066cc;
+  --color-apple-blue-hover: #0071e3;
+  
+  --color-success: #34c759;
+  --color-success-bg: #e5f8eb;
+  --color-warning: #ff9500;
+  --color-warning-bg: #fff4e5;
+  --color-error: #ff3b30;
+  --color-error-bg: #ffebe9;
+  
+  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+@layer base {
+  :root {
+    --background: var(--color-apple-100);
+    --surface: rgba(255, 255, 255, 0.7);
+    --foreground: var(--color-apple-600);
+    --text-muted: var(--color-apple-400);
+    --border: rgba(0, 0, 0, 0.08); /* Translucent subtle borders */
+    --primary: var(--color-apple-blue);
+  }
+
+  body {
+    background-color: var(--background);
+    /* Fondo con gradiente sutil y luz tipo "mesh" */
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(255, 255, 255, 1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(245, 245, 247, 1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(232, 232, 237, 0.5) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(255, 255, 255, 1) 0px, transparent 50%);
+    background-size: cover;
+    background-attachment: fixed;
+    color: var(--foreground);
+    font-family: var(--font-apple);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.015em; /* Typographic standard for SF Pro */
+  }
+}
+
+@layer utilities {
+  .apple-card {
+    background-color: var(--surface);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+  }
+
+  .apple-button {
+    background-color: var(--color-apple-blue);
+    color: white;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  
+  .apple-button:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+  
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.3);
+  }
+}
