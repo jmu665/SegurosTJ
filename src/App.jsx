@@ -22,7 +22,8 @@ export default function App() {
     return <Auth onLogin={loginWithGoogle} />;
   }
 
-  if (user && user.email !== 'jmu665@gmail.com', 'geli.urias20@gmail.com', 'jmu664@gmail.com') {
+  const admins = ['jmu665@gmail.com', 'geli.urias20@gmail.com', 'jmu664@gmail.com'];
+  if (user && !admins.includes(user.email)) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#FBFBFD] px-6 text-center animate-in fade-in">
         <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-6">
