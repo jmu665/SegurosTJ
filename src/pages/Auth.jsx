@@ -59,8 +59,7 @@ export default function Auth({ onLogin }) {
             rel="noopener noreferrer"
             className="mt-6 flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity duration-500 group no-underline"
           >
-            <span className="text-[10px] uppercase tracking-[3px] text-apple-400 mb-1 group-hover:text-apple-blue transition-colors">Powered by design</span>
-            <span className="text-[12px] font-semibold text-apple-600 tracking-wider uppercase group-hover:text-apple-blue transition-colors">Martin Urias</span>
+            <span className="text-[10px] uppercase tracking-[3px] text-apple-400 mb-1 group-hover:text-apple-blue transition-colors font-medium">Powered by design</span>
           </a>
         </div>
       </div>

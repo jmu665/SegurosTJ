@@ -21,7 +21,7 @@ export default function DashboardLayout({ children, currentView, setView, onLogo
     <div className="min-h-screen flex flex-col bg-apple-100 relative">
       
       {/* Top Header Navbar */}
-      <header className="sticky top-0 z-[100] bg-white/95 backdrop-blur-xl border-b border-border p-4 shadow-sm">
+      <header className="sticky top-0 z-[100] bg-white border-b border-border p-4 shadow-sm">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-2 text-apple-600 font-semibold text-[17px] tracking-tight flex-shrink-0">
@@ -83,7 +83,7 @@ export default function DashboardLayout({ children, currentView, setView, onLogo
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-apple-600/20 backdrop-blur-sm z-50 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/40 z-50 md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -91,7 +91,7 @@ export default function DashboardLayout({ children, currentView, setView, onLogo
       {/* Mobile Drawer Menu */}
       <aside className={`
         fixed top-0 right-0 h-[100dvh] w-64
-        apple-card !rounded-none !border-y-0 !border-r-0 p-6 flex flex-col 
+        bg-white border-l border-border p-6 flex flex-col 
         z-50 transform transition-transform duration-300 ease-in-out md:hidden
         ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
       `}>
