@@ -66,9 +66,8 @@ export default function Dashboard() {
   ];
 
   const years = useMemo(() => {
-    const current = new Date().getFullYear();
     const range = [];
-    for (let i = current - 5; i <= current + 1; i++) {
+    for (let i = 2022; i <= 2030; i++) {
       range.push(i);
     }
     return range;
