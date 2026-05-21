@@ -22,7 +22,7 @@ export default function App() {
     return <Auth onLogin={loginWithGoogle} />;
   }
 
-  const admins = ['jmu665@gmail.com', 'geli.urias20@gmail.com', 'jmu664@gmail.com'];
+  const admins = ['jmu665@gmail.com', 'geli.urias20@gmail.com', 'jmu664@gmail.com', 'angelicauriasseguros@gmail.com'];
   if (user && !admins.includes(user.email)) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#FBFBFD] px-6 text-center animate-in fade-in">
