@@ -75,19 +75,50 @@ export default function UploadZone({ onDataExtracted, isProcessing, setIsProcess
         }
       }
 
-      // === ENVIAR TEXTO A LA IA PARA EXTRACCIÓN ===
-      console.log('📄 TEXTO EXTRAÍDO DEL PDF:', fullText);
+      // === MOTOR DE EXTRACCIÓN INTELIGENTE (ESTRATEGIA REFACTORIZADA) ===
+      const regexData = extractPolicyData(fullText);
 
       setStatusText('Analizando póliza con IA...');
       const { extractDataWithAI } = await import('../../lib/aiExtractor');
       const aiData = await extractDataWithAI(fullText);
 
+      console.log('📊 DATOS EXTRAÍDOS (REGEX):', regexData);
       console.log('🧠 DATOS EXTRAÍDOS (IA):', aiData);
+
+      // Limpiar propiedades vacías o 'No detectado' para evitar sobreescrituras en blanco
+      const isValid = (v) => v != null && v !== '' && v !== 'No detectado' && v !== 'No contiene';
+
+      // Campos numéricos/monetarios: REGEX manda, IA es respaldo
+      const moneyFields = ['primaNeta', 'primaTotal', 'primerPago', 'pagoSubsecuente', 'recargo', 'gastosExpedicion'];
+      // Campos de texto: IA puede ser mejor, pero REGEX tiene prioridad si encontró algo válido
+      const allFields = new Set([...Object.keys(regexData), ...Object.keys(aiData)]);
+
+      const finalData = {};
+      for (const field of allFields) {
+        const regexVal = regexData[field];
+        const aiVal = aiData[field];
+
+        if (moneyFields.includes(field)) {
+          // Para dinero: REGEX es rey absoluto, IA solo si REGEX falló estrepitosamente
+          finalData[field] = isValid(regexVal) ? regexVal : (isValid(aiVal) ? aiVal : (regexVal || ''));
+        } else {
+          // Para texto: usar el que tenga valor, priorizando REGEX, pero dejando que IA gane si es 'contratante' o algo que la IA suele hacer mejor.
+          // En este caso, dejaremos que la IA tenga prioridad en el texto ya que su prompt fue mejorado, EXCEPTO para RFC y fechas que el REGEX hace bien
+          const regexPriorities = ['rfc', 'inicio', 'fin', 'serie', 'formaPago'];
+          if (regexPriorities.includes(field)) {
+             finalData[field] = isValid(regexVal) ? regexVal : (isValid(aiVal) ? aiVal : (regexVal || ''));
+          } else {
+             finalData[field] = isValid(aiVal) ? aiVal : (isValid(regexVal) ? regexVal : (aiVal || ''));
+          }
+        }
+      }
+
+      console.log('✅ DATOS FINALES (FUSIÓN INTELIGENTE):', finalData);
 
       const extractedData = {
         id: Date.now(),
         estado: 'Pendiente',
-        ...aiData
+        ...finalData
       };
 
       onDataExtracted(extractedData);

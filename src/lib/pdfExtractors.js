@@ -273,27 +273,33 @@ function extractFromChubb(t) {
       version = mMod[2];
   }
 
-  // Desglose Chubb: primaNeta | desc | financiamiento | gastos | IVA | totalPagar
-  let desgloseMatch = t.match(
-    /(?:NACIONAL|FRONTERIZO|NO\s+DISPONIBLE|EN\s+TRAMITE)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)/i
-  );
-
+  // Extraer las cantidades globales de la póliza
   let primaNeta = '';
   let primaTotal = '';
   let primerPago = '';
   let pagoSubsecuente = '';
 
-  if (desgloseMatch) {
-    // Chubb: primaNeta es el primer número, Total a Pagar es el último (6to)
-    primaNeta   = desgloseMatch[1];
-    primaTotal  = desgloseMatch[6]; // Total a Pagar = Prima Total
-    primerPago  = desgloseMatch[6]; // Primer Recibo = Total a Pagar
-  } else {
-    // Fallback por etiquetas
-    primaNeta  = t.match(/Prima\s*neta\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
-    let totalPagar = t.match(/Total\s*a\s*pagar\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
-    primaTotal = totalPagar;
-    primerPago = totalPagar;
+  // 1. Prima Neta: tomar el primer match global que aparezca (suele ser el más grande)
+  let primaNetasMatches = [...t.matchAll(/Prima\s*neta\s*[\$\s]*([\d,\.]+)/ig)];
+  if (primaNetasMatches.length > 0) {
+    primaNeta = primaNetasMatches[0][1]; 
+  }
+
+  // 2. Prima Total: el costo total global anualizado
+  let primaTotalMatch = t.match(/Prima\s*total\s*[\$\s]*([\d,\.]+)/i);
+  if (primaTotalMatch) {
+    primaTotal = primaTotalMatch[1];
+  }
+
+  // 3. Primer Pago: buscar específicamente "Total a Pagar" (Aviso de Cobro)
+  let totalPagarMatch = t.match(/Total\s*a\s*pagar\s*:\s*[\$\s]*([\d,\.]+)/i) || t.match(/Total\s*a\s*pagar\s*[\$\s]*([\d,\.]+)/i);
+  if (totalPagarMatch) {
+    primerPago = totalPagarMatch[1];
+  }
+
+  // Si no se encuentra "Prima Total", usamos un fallback asumiendo que es pago único
+  if (!primaTotal && primerPago) {
+    primaTotal = primerPago;
   }
 
   // El teléfono del cliente viene suelto en formato de 10 dígitos después de la dirección
