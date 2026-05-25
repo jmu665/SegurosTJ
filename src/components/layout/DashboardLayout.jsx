@@ -21,7 +21,7 @@ export default function DashboardLayout({ children, currentView, setView, onLogo
     <div className="min-h-screen flex flex-col bg-apple-100 relative">
       
       {/* Top Header Navbar */}
-      <header className="sticky top-0 z-[100] !bg-white border-b border-border p-4 shadow-sm !opacity-100">
+      <header className="sticky top-0 z-[100] border-b border-border p-4 shadow-sm" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
           
           <div className="flex items-center gap-2 text-apple-600 font-semibold text-[17px] tracking-tight flex-shrink-0">
@@ -83,19 +83,16 @@ export default function DashboardLayout({ children, currentView, setView, onLogo
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-50 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/60 z-[200] md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Mobile Drawer Menu */}
-      <aside className={`
-        fixed top-0 right-0 h-[100dvh] w-64
-        !bg-white border-l border-border p-6 flex flex-col 
-        z-50 transform transition-transform duration-300 ease-in-out md:hidden
-        !opacity-100 shadow-2xl
-        ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
-      `}>
+      <aside 
+        className={`fixed top-0 right-0 h-[100dvh] w-64 border-l border-border p-6 flex flex-col z-[200] transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ backgroundColor: '#ffffff', opacity: 1 }}
+      >
         <div className="flex items-center justify-between text-apple-600 font-semibold text-[17px] tracking-tight mb-8 mt-2">
           <span className="text-apple-500 text-sm uppercase tracking-wider font-bold">Menú</span>
           <button 
