@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MoreHorizontal, Trash2, AlertTriangle, Clock, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { createPortal } from 'react-dom';
 import PolicyDetailModal from './PolicyDetailModal';
 
 const WhatsAppIcon = ({ size = 16, className = "" }) => (
@@ -391,52 +392,67 @@ export default function InsuranceTable({ data = [] }) {
       )}
 
       {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {policyToDelete && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
-              onClick={() => setPolicyToDelete(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-sm bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-white/40"
-            >
-              <div className="p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-error-bg text-error flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle size={24} strokeWidth={1.5} />
+      {createPortal(
+        <AnimatePresence>
+          {policyToDelete && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                onClick={() => setPolicyToDelete(null)}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                className="w-full max-w-[380px] bg-white/95 backdrop-blur-2xl rounded-[32px] shadow-[0_32px_64px_-12px_rgba(255,59,48,0.2)] relative z-10 overflow-hidden border border-white/60 p-7"
+              >
+                <div className="text-center">
+                  {/* Warning Icon Container with Premium Glow */}
+                  <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200/50 text-red-500 flex items-center justify-center mx-auto mb-5 shadow-[0_8px_20px_-4px_rgba(239,68,68,0.2)]">
+                    <AlertTriangle size={28} className="animate-pulse" />
+                  </div>
+                  
+                  <h3 className="text-[21px] font-bold text-apple-600 tracking-tight leading-tight mb-2">
+                    ¿Eliminar póliza?
+                  </h3>
+                  
+                  <p className="text-[14px] text-apple-500 leading-relaxed px-1">
+                    Esta acción es irreversible. Se eliminarán de forma permanente la póliza y los vehículos vinculados.
+                  </p>
+
+                  {/* Elegant Information Card */}
+                  <div className="bg-black/[0.02] border border-black/[0.04] rounded-2xl p-4 my-5 text-left">
+                    <span className="text-[10px] uppercase tracking-wider text-apple-400 font-bold block mb-1">Elemento a eliminar</span>
+                    <div className="text-[15px] font-bold text-apple-600 truncate">{policyToDelete.contratante}</div>
+                    <div className="text-[13px] font-mono text-apple-400 mt-1">Póliza: {policyToDelete.poliza}</div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-2.5">
+                    <button
+                      onClick={confirmDelete}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold text-[15px] shadow-[0_8px_20px_-6px_rgba(239,68,68,0.4)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 focus-ring"
+                    >
+                      Eliminar Documento
+                    </button>
+                    <button
+                      onClick={() => setPolicyToDelete(null)}
+                      className="w-full py-3.5 rounded-2xl bg-black/5 hover:bg-black/10 text-apple-600 font-semibold text-[15px] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 focus-ring border border-transparent hover:border-black/5"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-[19px] font-semibold text-apple-600 tracking-tight leading-tight mb-2">
-                  ¿Eliminar póliza?
-                </h3>
-                <p className="text-[14px] text-apple-500 mb-6 px-2">
-                  Estás a punto de eliminar la póliza <strong>{policyToDelete.poliza}</strong> del cliente <strong>{policyToDelete.contratante}</strong>. Esta acción no se puede deshacer.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={confirmDelete}
-                    className="w-full py-3 rounded-2xl bg-error hover:bg-red-600 text-white font-medium text-[15px] transition-colors focus-ring"
-                  >
-                    Eliminar Documento
-                  </button>
-                  <button
-                    onClick={() => setPolicyToDelete(null)}
-                    className="w-full py-3 rounded-2xl bg-black/5 hover:bg-black/10 text-apple-600 font-medium text-[15px] transition-colors focus-ring"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }
