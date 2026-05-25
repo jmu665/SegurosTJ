@@ -11,8 +11,13 @@ import { useAuth } from './lib/auth';
 import { DataProvider } from './context/DataContext';
 
 export default function App() {
-  const { user, loading, loginWithGoogle, logout } = useAuth();
+  const { user: realUser, loading: realLoading, loginWithGoogle, logout } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+
+  // Hardcode auth para desarrollo local (npm run dev)
+  const isDev = import.meta.env.DEV;
+  const user = isDev ? { email: 'jmu665@gmail.com', name: 'Desarrollador Local' } : realUser;
+  const loading = isDev ? false : realLoading;
 
   if (loading) {
     return <div className="h-screen w-full flex items-center justify-center bg-apple-100 text-apple-500">Cargando...</div>;

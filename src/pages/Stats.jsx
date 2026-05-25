@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { Target, TrendingUp, BarChart3, Activity, FileCheck2, Users, AlertTriangle, Wallet, CheckCircle2 } from 'lucide-react';
+import { Target, TrendingUp, BarChart3, Activity, FileCheck2, Users, AlertTriangle, Wallet, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const CardGrid = ({ title, cards, startDelay = 0 }) => (
+const CardGrid = ({ title, cards, startDelay = 0, rightContent = null }) => (
   <>
-    <h3 className="text-[17px] font-semibold text-apple-600 tracking-tight mt-2">{title}</h3>
+    <div className="flex items-center justify-between mt-2 mb-2">
+      <h3 className="text-[17px] font-semibold text-apple-600 tracking-tight">{title}</h3>
+      {rightContent}
+    </div>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {cards.map((stat, i) => {
         const Icon = stat.icon;
@@ -33,9 +37,21 @@ const CardGrid = ({ title, cards, startDelay = 0 }) => (
 export default function Stats() {
   const { policies, clients } = useData();
 
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const currentMonth = selectedDate.getMonth();
+  const currentYear = selectedDate.getFullYear();
+
+  const handlePrevMonth = () => {
+    setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const monthName = selectedDate.toLocaleString('es-MX', { month: 'long' });
+  const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
   function getPaymentEvents(p) {
     const events = [];
@@ -145,7 +161,25 @@ export default function Stats() {
 
       <CardGrid title="Panorama General" cards={overviewCards} startDelay={0} />
       <CardGrid title="Cartera Global" cards={carteraCards} startDelay={3} />
-      <CardGrid title="Rendimiento Mensual" cards={performanceCards} startDelay={6} />
+      
+      <CardGrid 
+        title={`Rendimiento Mensual (${capitalizedMonth} ${currentYear})`} 
+        cards={performanceCards} 
+        startDelay={6} 
+        rightContent={
+          <div className="flex items-center gap-2 bg-white/50 border border-border/50 rounded-full p-1 shadow-sm backdrop-blur-md">
+            <button onClick={handlePrevMonth} className="p-1.5 rounded-full hover:bg-apple-100 text-apple-500 transition-colors">
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-[13px] font-medium text-apple-600 min-w-[100px] text-center capitalize">
+              {capitalizedMonth} {currentYear}
+            </span>
+            <button onClick={handleNextMonth} className="p-1.5 rounded-full hover:bg-apple-100 text-apple-500 transition-colors">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        }
+      />
     </div>
   );
 }

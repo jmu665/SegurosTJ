@@ -102,7 +102,8 @@ export default function PolicyDetailModal({ policy, onClose }) {
       servicio: vehiculo.servicio || currentPolicy.servicio,
       puertas: vehiculo.puertas || currentPolicy.puertas,
       paquete: vehiculo.paquete || currentPolicy.paquete,
-      tipo_vehiculo: vehiculo.tipo_vehiculo
+      tipo_vehiculo: vehiculo.tipo_vehiculo,
+      conducto: currentPolicy.conducto
     });
     setIsEditing(true);
   };
@@ -124,6 +125,7 @@ export default function PolicyDetailModal({ policy, onClose }) {
       fin: formData.fin,
       prima_neta: formData.prima_neta,
       prima_total: formData.prima_total,
+      conducto: formData.conducto,
       tarifa: JSON.stringify(newTarifa),
       cliente: {
         nombre: formData.nombre,
@@ -199,6 +201,7 @@ export default function PolicyDetailModal({ policy, onClose }) {
               <Field label="Aseguradora" value={isEditing ? formData.aseguradora : currentPolicy.aseguradora} icon={Tag} isEditing={isEditing} name="aseguradora" onChange={handleChange} />
               <Field label="Forma de Pago" value={isEditing ? formData.forma_pago : (currentPolicy.formaPago || currentPolicy.forma_pago)} icon={CreditCard} isEditing={isEditing} name="forma_pago" onChange={handleChange} />
               <Field label="Agente" value={isEditing ? formData.agente : currentPolicy.agente} icon={User} isEditing={isEditing} name="agente" onChange={handleChange} />
+              <Field label="Conducto" value={isEditing ? formData.conducto : currentPolicy.conducto} icon={User} isEditing={isEditing} name="conducto" onChange={handleChange} />
               <Field label="Inicio de Vigencia" value={isEditing ? formData.inicio : formatDate(currentPolicy.inicio)} icon={Calendar} isEditing={isEditing} name="inicio" onChange={handleChange} />
               <Field label="Fin de Vigencia" value={isEditing ? formData.fin : formatDate(currentPolicy.fin)} icon={Calendar} isEditing={isEditing} name="fin" onChange={handleChange} />
             </Section>

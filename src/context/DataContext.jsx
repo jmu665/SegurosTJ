@@ -147,6 +147,7 @@ export function DataProvider({ children }) {
         prima_total: parseCurrency(policy.primaTotal),
         estado: policy.estado,
         agente: policy.agente,
+        conducto: policy.conducto,
         tarifa: policy.tarifa
       }]).select();
 
@@ -160,6 +161,7 @@ export function DataProvider({ children }) {
           primaNeta: data[0].prima_neta,
           primaTotal: data[0].prima_total,
           tarifa: data[0].tarifa,
+          conducto: data[0].conducto,
           contratante: policy.contratante,
           vehiculoInfo: `${vehicleData.marca} ${vehicleData.modelo}`,
           cliente: {
@@ -234,7 +236,7 @@ export function DataProvider({ children }) {
       const { data: pol } = await supabase.from('poliza').select('cliente_id, vehiculo_id').eq('id', id).single();
       
       // Solo enviar columnas válidas de la tabla poliza
-      const validPolizaCols = ['aseguradora', 'numero_poliza', 'inicio', 'fin', 'forma_pago', 'prima_neta', 'prima_total', 'estado', 'agente', 'tarifa'];
+      const validPolizaCols = ['aseguradora', 'numero_poliza', 'inicio', 'fin', 'forma_pago', 'prima_neta', 'prima_total', 'estado', 'agente', 'conducto', 'tarifa'];
       const polizaUpdate = {};
       for (const key of validPolizaCols) {
         if (rawPolizaData[key] !== undefined && rawPolizaData[key] !== null) {
@@ -280,6 +282,7 @@ export function DataProvider({ children }) {
              formaPago: polizaUpdate.forma_pago || p.formaPago,
              primaNeta: polizaUpdate.prima_neta || p.primaNeta,
              primaTotal: polizaUpdate.prima_total || p.primaTotal,
+             conducto: polizaUpdate.conducto !== undefined ? polizaUpdate.conducto : p.conducto,
              contratante: cliente?.nombre || p.contratante,
            };
         }

@@ -6,30 +6,61 @@ const corsHeaders = {
 }
 
 const PROMPT_TEMPLATE = (pdfText: string) => `
-Analiza el siguiente texto extraído de una póliza de seguros en México.
-Extrae la información clave y devuélvela ÚNICAMENTE en formato JSON plano, sin markdown, sin bloques de código, sin explicaciones.
+Eres un sistema automatizado experto en la extracción de datos de pólizas de seguros de automóviles en México.
+Tu única tarea es analizar el texto extraído del PDF de la póliza y mapear la información exacta en formato JSON.
 
-Campos requeridos:
-- poliza (String)
-- contratante (Nombre completo del cliente)
-- rfc (RFC del cliente)
-- direccion (Dirección completa del cliente)
-- telefono (10 dígitos si existe)
-- aseguradora (Nombre de la compañía)
-- inicio (Fecha de inicio vigencia DD/MM/YYYY)
-- fin (Fecha de fin vigencia DD/MM/YYYY)
-- formaPago (Anual, Semestral, Trimestral o Mensual)
-- primaNeta (Número con decimales)
-- primaTotal (Número con decimales)
-- primerPago (Monto del primer recibo o pago inicial)
-- pagoSubsecuente (Monto de los recibos restantes)
-- serie (VIN/NIV del vehículo, 17 caracteres)
-- modelo (Nombre/Descripción del vehículo)
-- version (Año)
-- paquete (Tipo de cobertura)
+### REGLAS DE NEGOCIO CRÍTICAS:
 
-TEXTO DEL PDF:
+1. **formaPago**:
+   - Valores permitidos: "Contado", "Anual", "Semestral", "Trimestral", "Mensual".
+   - CUIDADO: La frase "Prima Anual" NO significa que la forma de pago sea Anual. Es solo el nombre del costo total.
+   - Si el documento dice "SEMESTRAL" cerca de "Forma de Pago", es "Semestral".
+   - Si existen "Primer Recibo" y "Subsecuentes" con montos diferentes, es pago fraccionado.
+
+2. **Nombres (Contratante vs Asegurado)**:
+   - Para el campo "contratante", busca explícitamente la etiqueta "Contratante".
+   - Si la póliza (especialmente Chubb) muestra tanto un "Contratante" como un "Asegurado", DEBES extraer SIEMPRE el nombre del "Contratante". Solo usa el Asegurado si la palabra Contratante no existe.
+
+3. **Montos - Reglas por Aseguradora**:
+   - General de Seguros: primaNeta = "Prima Neta de Coberturas" | primaTotal = "Total a Pagar" | primerPago = "Primer Recibo" | pagoSubsecuente = "Subsecuentes".
+   - Chubb: primaNeta = Primer número del desglose | primaTotal = "Total a Pagar" del aviso de cobro | primerPago = "Total a Pagar" del aviso de cobro (el primer recibo ES el total del aviso). Si es pago fraccionado con un solo recibo mostrado, primerPago = Total a Pagar.
+   - Qualitas, AXA, HDI, etc.: primaNeta = Prima Neta | primaTotal = Total a Pagar o Prima Total | primerPago = Primer Pago, Primer Recibo, o Total a Pagar si es pago único | pagoSubsecuente = Pago Subsecuente o Subsecuentes.
+
+3. **Formato de Fechas y Textos**:
+   - Fechas ("inicio" y "fin"): SIEMPRE en formato DD/MM/YYYY.
+   - "serie" (VIN/NIV): Deben ser exactamente 17 caracteres alfanuméricos continuos.
+
+### REGLAS DE FORMATO Y SALIDA (JSON ESTRICTO):
+- Devuelve ÚNICAMENTE un objeto JSON plano.
+- NO incluyas bloques de código markdown (como \\\`\\\`\\\`json).
+- NO incluyas saludos, explicaciones, ni texto adicional.
+- Si un dato no se encuentra en el texto, el valor debe ser explícitamente null (no "N/A" ni "").
+- Los montos monetarios deben ser números enteros o decimales (ej. 12500.50), ELIMINA el símbolo "$" y las comas ",".
+
+### ESTRUCTURA JSON REQUERIDA:
+{
+  "poliza": "Número de póliza",
+  "contratante": "Nombre completo del cliente",
+  "rfc": "RFC del cliente (12 o 13 caracteres, no el de la aseguradora)",
+  "direccion": "Dirección completa del cliente",
+  "telefono": "10 dígitos si existe, de lo contrario null",
+  "aseguradora": "Nombre de la compañía aseguradora",
+  "inicio": "DD/MM/YYYY",
+  "fin": "DD/MM/YYYY",
+  "formaPago": "Contado, Anual, Semestral, Trimestral o Mensual",
+  "primaNeta": 0.00,
+  "primaTotal": 0.00,
+  "primerPago": 0.00,
+  "pagoSubsecuente": 0.00,
+  "serie": "17 caracteres",
+  "modelo": "Descripción del vehículo (marca, línea, tipo)",
+  "version": "Año del modelo (Ej. 2024)",
+  "paquete": "Tipo de cobertura (Amplia, Limitada, RC, etc.)"
+}
+
+<TEXTO_POLIZA>
 ${pdfText}
+</TEXTO_POLIZA>
 `;
 
 serve(async (req) => {

@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS poliza (
     prima_total DECIMAL(12,2),
     estado TEXT,
     agente TEXT,
+    conducto TEXT,
     tarifa TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

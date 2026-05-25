@@ -75,43 +75,19 @@ export default function UploadZone({ onDataExtracted, isProcessing, setIsProcess
         }
       }
 
-      // === MOTOR DE EXTRACCIÓN INTELIGENTE ===
-      const t = fullText; // alias corto
-      console.log('📄 TEXTO EXTRAÍDO DEL PDF:', t); // DEBUG: para ver qué lee el motor
+      // === ENVIAR TEXTO A LA IA PARA EXTRACCIÓN ===
+      console.log('📄 TEXTO EXTRAÍDO DEL PDF:', fullText);
 
-
-
-      // === MOTOR DE EXTRACCIÓN INTELIGENTE (ESTRATEGIA REFACTORIZADA) ===
-      const regexData = extractPolicyData(fullText);
-
-      setStatusText('Extrayendo datos de la póliza...');
+      setStatusText('Analizando póliza con IA...');
       const { extractDataWithAI } = await import('../../lib/aiExtractor');
       const aiData = await extractDataWithAI(fullText);
 
-      console.log('📊 DATOS EXTRAÍDOS (REGEX):', regexData);
       console.log('🧠 DATOS EXTRAÍDOS (IA):', aiData);
-
-      // Pequeña pausa artificial para que el usuario aprecie la animación premium
-      await new Promise(resolve => setTimeout(resolve, 2500));
-
-      // Priorizar datos de la IA, pero asegurar que no perdamos lo que ya tenemos
-      const finalData = {
-        ...regexData,
-        ...aiData, // La IA sobreescribe lo anterior si trae datos
-      };
-
-      // Limpieza extra para asegurar que campos críticos tengan valor si la IA falló en ellos
-      const fields = ['poliza', 'contratante', 'rfc', 'direccion', 'primerPago', 'pagoSubsecuente'];
-      fields.forEach(field => {
-        if (!finalData[field] && regexData[field]) {
-          finalData[field] = regexData[field];
-        }
-      });
 
       const extractedData = {
         id: Date.now(),
         estado: 'Pendiente',
-        ...finalData
+        ...aiData
       };
 
       onDataExtracted(extractedData);

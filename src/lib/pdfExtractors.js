@@ -246,7 +246,7 @@ function extractFromChubb(t) {
   const inicio = allDates[0] || 'No detectado';
   const fin = allDates[1] || 'No detectado';
 
-  const formaPagoMatch = t.match(/\b(ANUAL|SEMESTRAL|TRIMESTRAL|MENSUAL|CONTADO)\b/i)?.[1];
+  const formaPagoMatch = t.match(/Forma\s+de\s+pago[s]?[\s:]+(ANUAL|SEMESTRAL|TRIMESTRAL|MENSUAL|CONTADO)/i)?.[1] || t.match(/\b(SEMESTRAL|TRIMESTRAL|MENSUAL)\b/i)?.[1] || t.match(/\b(ANUAL|CONTADO)\b/i)?.[1];
   const formaPago = formaPagoMatch ? capitalize(formaPagoMatch) : 'No detectado';
 
   // Buscar el RFC del cliente en la línea principal primero
@@ -273,54 +273,27 @@ function extractFromChubb(t) {
       version = mMod[2];
   }
 
-  // Desglose de pago Chubb (Aviso de Cobro):
-  // Los números aparecen seguidos (sin etiquetas) después de la descripción del vehículo:
-  // primaNeta | otrosDescuentos | financiamiento | gastosExpedicion | IVA | totalPagar
-  // Ej: "NISSAN SENTRA ... 2016 NACIONAL NO DISPONIBLE 2,747.69 0.00 122.57 799.00 587.07 4,256.33"
+  // Desglose Chubb: primaNeta | desc | financiamiento | gastos | IVA | totalPagar
   let desgloseMatch = t.match(
     /(?:NACIONAL|FRONTERIZO|NO\s+DISPONIBLE|EN\s+TRAMITE)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)/i
   );
 
   let primaNeta = '';
-  let recargoChubb = 0;
-  let gastosChubb = 0;
   let primaTotal = '';
-
-  if (desgloseMatch) {
-    // Orden: primaNeta | otrosDescuentos | financiamiento | gastosExpedicion | IVA | total
-    primaNeta = desgloseMatch[1];
-    recargoChubb = parseFloat(desgloseMatch[3].replace(/,/g, '')) || 0;
-    gastosChubb  = parseFloat(desgloseMatch[4].replace(/,/g, '')) || 0;
-    primaTotal   = desgloseMatch[6];
-  } else {
-    // Fallback: buscar por etiquetas individuales
-    primaNeta  = t.match(/Prima\s*Neta\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
-    recargoChubb = parseFloat((t.match(/Financiamiento\s+por\s+pago\s+fraccionado\s*[\$\s]*([\d,\.]+)/i)?.[1] || '0').replace(/,/g, '')) || 0;
-    gastosChubb  = parseFloat((t.match(/Gastos\s+de\s+expedici[oó]n\s*[\$\s]*([\d,\.]+)/i)?.[1] || '0').replace(/,/g, '')) || 0;
-    primaTotal   = t.match(/Total\s*a\s*pagar\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
-  }
-
-  // Calcular primerPago y pagoSubsecuente automáticamente cuando hay desglose
   let primerPago = '';
   let pagoSubsecuente = '';
 
-  const formaPagoLower = (formaPago || 'Anual').toLowerCase();
-  let numPagos = 1;
-  if (formaPagoLower.includes('semestral')) numPagos = 2;
-  else if (formaPagoLower.includes('trimestral')) numPagos = 4;
-  else if (formaPagoLower.includes('mensual')) numPagos = 12;
-
-  const netaNum = parseFloat((primaNeta || '0').replace(/,/g, '')) || 0;
-
-  if (numPagos > 1 && (recargoChubb > 0 || gastosChubb > 0) && netaNum > 0) {
-    const baseXPago = (netaNum / numPagos) + (recargoChubb / numPagos);
-    primerPago      = ((baseXPago + gastosChubb) * 1.16).toFixed(2);
-    pagoSubsecuente = (baseXPago * 1.16).toFixed(2);
-  } else if (numPagos > 1 && primaTotal) {
-    const totalNum = parseFloat(primaTotal.replace(/,/g, '')) || 0;
-    const montoIgual = (totalNum / numPagos).toFixed(2);
-    primerPago = montoIgual;
-    pagoSubsecuente = montoIgual;
+  if (desgloseMatch) {
+    // Chubb: primaNeta es el primer número, Total a Pagar es el último (6to)
+    primaNeta   = desgloseMatch[1];
+    primaTotal  = desgloseMatch[6]; // Total a Pagar = Prima Total
+    primerPago  = desgloseMatch[6]; // Primer Recibo = Total a Pagar
+  } else {
+    // Fallback por etiquetas
+    primaNeta  = t.match(/Prima\s*neta\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
+    let totalPagar = t.match(/Total\s*a\s*pagar\s*[\$\s]*([\d,\.]+)/i)?.[1] || '';
+    primaTotal = totalPagar;
+    primerPago = totalPagar;
   }
 
   // El teléfono del cliente viene suelto en formato de 10 dígitos después de la dirección
@@ -379,11 +352,23 @@ function extractFromGS(t) {
   let paquete = t.match(/CONFORT\s+([A-Z]+)/i)?.[1] || 'No contiene';
 
   let primaNeta = t.match(/GS\s+([\d,\.]+)\s+Agente/i)?.[1] || '';
-  let primaTotal = t.match(/([\d,\.]+)\s+[\d,\.]+\s+[A-ZÀ-Ÿ\s]+?(?:SEMESTRAL|ANUAL|MENSUAL|TRIMESTRAL)/i)?.[1] || '';
+  let primaTotal = '';
+  let primerPago = '';
+  let pagoSubsecuente = '';
+
+  // GS: los números salen en orden: subsecuentes, recargo, gastos, iva, totalAPagar, primerRecibo NOMBRE SEMESTRAL
+  let gsNums = t.match(/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+[A-ZÀ-Ÿ\s]+?(?:SEMESTRAL|ANUAL|MENSUAL|TRIMESTRAL)/i);
+  if (gsNums) {
+    pagoSubsecuente = gsNums[1]; // 4,194.20
+    primaTotal      = gsNums[5]; // 9,258.38 (Total a Pagar)
+    primerPago       = gsNums[6]; // 5,064.19 (Primer Recibo)
+  } else {
+    primaTotal = t.match(/([\d,\.]+)\s+[\d,\.]+\s+[A-ZÀ-Ÿ\s]+?(?:SEMESTRAL|ANUAL|MENSUAL|TRIMESTRAL)/i)?.[1] || '';
+  }
 
   return {
     poliza, contratante, inicio, fin, formaPago,
-    primaNeta, primaTotal, recargo: '', gastosExpedicion: '', rfc, telefono,
+    primaNeta, primaTotal, primerPago, pagoSubsecuente, recargo: '', gastosExpedicion: '', rfc, telefono,
     direccion, agente: '', serie, puertas: '', paquete, modelo, version
   };
 }

@@ -35,7 +35,7 @@ export default function AddPolicy({ onComplete }) {
     nombre: '', rfc: '', direccion: '',
     aseguradora: '', poliza: '', inicio: '', fin: '',
     formaPago: 'Anual', primaNeta: '', primaTotal: '', estado: 'Activa',
-    agente: userName,
+    agente: userName, conducto: '',
     modelo: '', tipo_vehiculo: 'Auto', version: '', serie: '',
     puertas: '', paquete: ''
   });
@@ -71,6 +71,7 @@ export default function AddPolicy({ onComplete }) {
       primerPago: data.primerPago || prev.primerPago,
       pagoSubsecuente: data.pagoSubsecuente || prev.pagoSubsecuente,
       agente: prev.agente || userName, // Mantener el agente actual (usuario logueado)
+      conducto: data.conducto || prev.conducto,
       modelo: data.modelo || prev.modelo,
       serie: data.serie || prev.serie,
       version: data.version || prev.version,
@@ -153,7 +154,7 @@ export default function AddPolicy({ onComplete }) {
           aseguradora: '', poliza: '', inicio: '', fin: '',
           formaPago: 'Anual', primaNeta: '', primaTotal: '', estado: 'Activa',
           primerPago: '', pagoSubsecuente: '',
-          agente: userName,
+          agente: userName, conducto: '',
           modelo: '', tipo_vehiculo: 'Auto', version: '', serie: '',
           puertas: '', paquete: ''
         });
@@ -406,6 +407,11 @@ export default function AddPolicy({ onComplete }) {
               <div>
                 <label className="text-[13px] font-medium text-apple-500 mb-1.5 block ml-1">Agente</label>
                 <input type="text" value={extractedData.agente} onChange={e => updateExtractedField('agente', e.target.value)} className={inputClass} />
+              </div>
+
+              <div>
+                <label className="text-[13px] font-medium text-apple-500 mb-1.5 block ml-1">Conducto</label>
+                <input type="text" value={extractedData.conducto} onChange={e => updateExtractedField('conducto', e.target.value)} className={inputClass} placeholder="Ej. Ventas, Referido, etc." />
               </div>
 
               <div className="md:col-span-2 mt-4 mb-2">
