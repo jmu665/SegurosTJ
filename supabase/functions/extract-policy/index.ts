@@ -23,7 +23,9 @@ Tu única tarea es analizar el texto extraído del PDF de la póliza y mapear la
 
 3. **Montos - Reglas por Aseguradora**:
    - General de Seguros: primaNeta = "Prima Neta de Coberturas" | primaTotal = "Total a Pagar" | primerPago = "Primer Recibo" | pagoSubsecuente = "Subsecuentes".
-   - Chubb: primaNeta = Primer número del desglose | primaTotal = "Total a Pagar" del aviso de cobro | primerPago = "Total a Pagar" del aviso de cobro (el primer recibo ES el total del aviso). Si es pago fraccionado con un solo recibo mostrado, primerPago = Total a Pagar.
+   - Chubb:
+     * "primaNeta" y "primaTotal" deben ser extraídos únicamente de la carátula principal de la póliza (normalmente en la Página 2, donde está el desglose de Prima Neta, Derechos de Póliza, IVA y Prima Total).
+     * "primerPago" (el importe a pagar del primer recibo) y "pagoSubsecuente" (el importe de los recibos siguientes) deben ser extraídos únicamente de la sección del plan de pagos o del recibo de cobro (normalmente en las hojas de facturación al final, típicamente en la Página 5). NUNCA uses el total anual de la carátula como primer pago si la póliza está fraccionada.
    - Qualitas, AXA, HDI, etc.: primaNeta = Prima Neta | primaTotal = Total a Pagar o Prima Total | primerPago = Primer Pago, Primer Recibo, o Total a Pagar si es pago único | pagoSubsecuente = Pago Subsecuente o Subsecuentes.
 
 3. **Formato de Fechas y Textos**:

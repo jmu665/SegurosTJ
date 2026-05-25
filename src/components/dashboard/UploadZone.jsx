@@ -99,8 +99,14 @@ export default function UploadZone({ onDataExtracted, isProcessing, setIsProcess
         const aiVal = aiData[field];
 
         if (moneyFields.includes(field)) {
-          // Para dinero: REGEX es rey absoluto, IA solo si REGEX falló estrepitosamente
-          finalData[field] = isValid(regexVal) ? regexVal : (isValid(aiVal) ? aiVal : (regexVal || ''));
+          // Para dinero: REGEX es rey por defecto, pero EN CHUBB la IA tiene prioridad absoluta
+          // porque sabe separar semánticamente las primas (pág 2) y el recibo del primer pago (pág 5).
+          const isChubb = regexData.aseguradora === 'Chubb' || aiData.aseguradora === 'Chubb';
+          if (isChubb) {
+            finalData[field] = isValid(aiVal) ? aiVal : (isValid(regexVal) ? regexVal : (aiVal || ''));
+          } else {
+            finalData[field] = isValid(regexVal) ? regexVal : (isValid(aiVal) ? aiVal : (regexVal || ''));
+          }
         } else {
           // Para texto: usar el que tenga valor, priorizando REGEX, pero dejando que IA gane si es 'contratante' o algo que la IA suele hacer mejor.
           // En este caso, dejaremos que la IA tenga prioridad en el texto ya que su prompt fue mejorado, EXCEPTO para RFC y fechas que el REGEX hace bien
