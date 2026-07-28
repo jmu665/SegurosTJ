@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
-
 import AddPolicy from './pages/AddPolicy';
 import Stats from './pages/Stats';
 import Expirations from './pages/Expirations';
@@ -9,17 +8,60 @@ import Cartera from './pages/Cartera';
 import DashboardLayout from './components/layout/DashboardLayout';
 import { useAuth } from './lib/auth';
 import { DataProvider } from './context/DataContext';
+import { supabase } from './lib/supabase';
+
+const DEFAULT_ADMINS = [
+  'jmu665@gmail.com',
+  'geli.urias20@gmail.com',
+  'jmu664@gmail.com',
+  'angelicauriasseguros@gmail.com',
+  'uriasma64@gmail.com'
+];
 
 export default function App() {
   const { user: realUser, loading: realLoading, loginWithGoogle, logout } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+  const [allowedEmails, setAllowedEmails] = useState(DEFAULT_ADMINS);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
 
   // Hardcode auth para desarrollo local (npm run dev)
   const isDev = import.meta.env.DEV;
   const user = isDev ? { email: 'jmu665@gmail.com', name: 'Desarrollador Local' } : realUser;
   const loading = isDev ? false : realLoading;
 
-  if (loading) {
+  useEffect(() => {
+    async function loadAllowedEmails() {
+      try {
+        const isConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'https://mock.supabase.co';
+        if (!isConfigured) {
+          setLoadingAdmins(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('usuarios_autorizados')
+          .select('correo');
+
+        if (!error && data && data.length > 0) {
+          const dbEmails = data.map(item => item.correo.toLowerCase());
+          const combined = Array.from(new Set([...DEFAULT_ADMINS, ...dbEmails]));
+          setAllowedEmails(combined);
+        }
+      } catch (e) {
+        console.error('Error cargando usuarios autorizados desde DB:', e);
+      } finally {
+        setLoadingAdmins(false);
+      }
+    }
+
+    if (user) {
+      loadAllowedEmails();
+    } else {
+      setLoadingAdmins(false);
+    }
+  }, [user]);
+
+  if (loading || (user && loadingAdmins)) {
     return <div className="h-screen w-full flex items-center justify-center bg-apple-100 text-apple-500">Cargando...</div>;
   }
 
@@ -27,8 +69,7 @@ export default function App() {
     return <Auth onLogin={loginWithGoogle} />;
   }
 
-  const admins = ['jmu665@gmail.com', 'geli.urias20@gmail.com', 'jmu664@gmail.com', 'angelicauriasseguros@gmail.com'];
-  if (user && !admins.includes(user.email)) {
+  if (user && !allowedEmails.includes(user.email?.toLowerCase())) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#FBFBFD] px-6 text-center animate-in fade-in">
         <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-6">
@@ -50,7 +91,6 @@ export default function App() {
   const renderView = () => {
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
-
       case 'add': return <AddPolicy onComplete={() => setCurrentView('dashboard')} />;
       case 'stats': return <Stats />;
       case 'expirations': return <Expirations />;
